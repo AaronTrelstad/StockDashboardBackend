@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"net/http"
 	"time"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -24,8 +26,11 @@ func handleConnection(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 
+	var prev_value = 50.00;
+
 	for {
-		stockPrice := rand.Float64() * 100;
+		stockPrice := math.Max(rand.NormFloat64() * 5 + prev_value, 0);
+		prev_value = stockPrice;
 		message := fmt.Sprintf(`{"timestamp":%d, "price":%.2f}`, time.Now().Unix() * 1000, stockPrice)
 
 		err = conn.WriteMessage(websocket.TextMessage, []byte(message))
@@ -35,7 +40,7 @@ func handleConnection(w http.ResponseWriter, r *http.Request) {
 			return 
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(1000 * time.Millisecond)
 	}
 }
 
